@@ -6,7 +6,7 @@ void setup() {
   Serial.begin(115200);
 
   Serial.print("Playing alarm. Type anything to stop");
-  while (true) {
+  while (!Serial.available()) {
       Serial.println("Alarm!");
       tone(PIN_BUZZER, 1000, 250);
       delay(500);
