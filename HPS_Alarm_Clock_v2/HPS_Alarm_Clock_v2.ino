@@ -51,7 +51,7 @@ void setAlarm(){
   lcd.print("Set hour:");
   lcd.setCursor(0,1);
   lcd.print("12:00 PM");
-  int hour = set_hour;
+  int print_hour = set_hour;
   boolean pm = false;
 
   // Hour set logic, loop until switch is pressed.
@@ -67,16 +67,16 @@ void setAlarm(){
       lcd.print("Set hour:");
       lcd.setCursor(0,1);
       pm = false;
-      hour = set_hour;
-      if (hour == 12){
+      print_hour = set_hour;
+      if (print_hour == 12){
         pm = true;
-      } else if (hour == 0) {
-          hour = 12;
-      } else if (hour > 12) {
-          hour -= 12;
+      } else if (print_hour == 0) {
+          print_hour = 12;
+      } else if (print_hour > 12) {
+          print_hour -= 12;
           pm = true;
       }
-      lcd.print(hour, DEC);
+      lcd.print(print_hour, DEC);
       lcd.print(":00");
       if (pm) lcd.print(" PM");
       else    lcd.print(" AM");
@@ -92,7 +92,7 @@ void setAlarm(){
   lcd.clear();
   lcd.print("Set minute:");
   lcd.setCursor(0, 1);
-  lcd.print(hour, DEC);
+  lcd.print(print_hour, DEC);
   lcd.print(":00");
   if (pm) lcd.print(" PM");
   else    lcd.print(" AM");
@@ -109,7 +109,7 @@ void setAlarm(){
       lcd.clear();
       lcd.print("Set minute:");
       lcd.setCursor(0,1);
-      lcd.print(hour, DEC);
+      lcd.print(print_hour, DEC);
       lcd.print(":");
       if (set_minute < 10) lcd.print("0");
       lcd.print(set_minute, DEC);
@@ -238,13 +238,25 @@ void setup() {
   Serial.print(__DATE__);
   Serial.println(__TIME__);
   RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
-  Serial.println();
 
-  // Set RTC date and time to compile time.
-  Rtc.SetIsRunning(true);
+  // Set time if not running or not valid.
+  if (!Rtc.IsDateTimeValid()) {
+    Rtc.SetDateTime(compiled);
+  }
+  if (!Rtc.GetIsRunning()) {
+    Rtc.SetIsRunning(true);
+  }
+
+  // Compare with compile time to avoid resetting time on power loss.
+  RtcDateTime now = Rtc.GetDateTime();
+  if (uint32_t(now) < uint32_t(compiled)) {
+    Rtc.SetDateTime(compiled);
+  }
+
+  // UNCOMMENT BELOW TO SET DATE AND TIME UNCONDITIONALLY.
+  // Rtc.SetDateTime(compiled);
+
   Rtc.SetSquareWavePin(DS1307SquareWaveOut_Low);
-  Rtc.SetDateTime(compiled);
-
   previous_time = Rtc.GetDateTime();
 }
 
